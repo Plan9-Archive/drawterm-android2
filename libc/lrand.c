@@ -48,6 +48,7 @@ isrand(long seed)
 	}
 }
 
+/*
 void
 srand(long seed)
 {
@@ -55,6 +56,7 @@ srand(long seed)
 	isrand(seed);
 	unlock(&lk);
 }
+*/
 
 long
 lrand(void)

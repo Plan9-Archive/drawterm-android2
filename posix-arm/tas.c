@@ -13,6 +13,8 @@ tas(int *x)
 		: "r" (1), "r" (x)
 		: "memory"
 	);
+#elif __linux__
+    v = __sync_lock_test_and_set(x, 1);
 #else
 	__asm__ (
 		"1:	ldrex	%0, [%2]\n"
