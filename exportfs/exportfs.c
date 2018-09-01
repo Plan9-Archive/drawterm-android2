@@ -9,6 +9,8 @@
 #define Extern
 #include "exportfs.h"
 
+extern int mPaused;
+
 /* #define QIDPATH	((1LL<<48)-1) */
 #define QIDPATH	((((vlong)1)<<48)-1)
 vlong newqid = 0;
@@ -73,6 +75,10 @@ exportfs(int fd)
 	 * Start serving file requests from the network
 	 */
 	for(;;) {
+		if (mPaused != 0) {
+			sleep(1);
+			continue;
+		}
 		r = getsbuf();
 		if(r == 0)
 			fatal("Out of service buffers");

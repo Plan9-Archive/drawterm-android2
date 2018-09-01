@@ -17,6 +17,7 @@ add_library(native-lib SHARED
                         src/main/cpp/android.c
                         src/main/cpp/dtmain.c
                         src/main/cpp/flushimage.c
+                        src/main/cpp/devandroid.c
 
                         src/main/drawterm/cpu.c
                         src/main/drawterm/aan.c
@@ -226,6 +227,9 @@ find_library( # Sets the name of the path variable.
               # you want CMake to locate.
               log )
 
+find_library( camera-lib camera2ndk )
+find_library( media-lib mediandk )
+
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
@@ -234,4 +238,6 @@ target_link_libraries(native-lib
 
                        # Links the target library to the log library
                        # included in the NDK.
-                       ${log-lib} )
+                       ${log-lib}
+                       ${camera-lib}
+                       ${media-lib} )

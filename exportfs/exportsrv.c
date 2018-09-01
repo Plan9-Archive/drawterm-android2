@@ -4,6 +4,8 @@
 #define Extern	extern
 #include "exportfs.h"
 
+extern int mPaused;
+
 char Ebadfid[] = "Bad fid";
 char Enotdir[] = "Not a directory";
 char Edupfid[] = "Fid already in use";
@@ -425,6 +427,10 @@ slave(Fsrpc *f)
 	static int nproc;
 
 	for(;;) {
+		if (mPaused != 0) {
+			sleep(1);
+			continue;
+		}
 		for(p = Proclist; p; p = p->next) {
 			if(p->busy == 0) {
 				f->pid = p->pid;
@@ -478,6 +484,10 @@ DEBUG(DFD, "blockingslave %d rendez\n", pid);
 DEBUG(DFD, "blockingslave %d rendez got %p\n", pid, m);
 	
 	for(;;) {
+		if (mPaused != 0) {
+			sleep(1);
+			continue;
+		}
 		p = rendezvous((void*)(uintptr)pid, (void*)(uintptr)pid);
 		if((uintptr)p == ~(uintptr)0)			/* Interrupted */
 			continue;

@@ -2,6 +2,8 @@
 #include <libc.h>
 #include <fcall.h>
 
+extern int mPaused;
+
 enum {
 	Hdrsz = 3*4,
 	Bufsize = 8*1024,
@@ -85,6 +87,10 @@ aanwriter(void *arg)
 	ulong m;
 
 	for(;;){
+		if(mPaused != 0) {
+			sleep(1);
+			continue;
+		}
 		b = malloc(sizeof(Buf));
 		if(b == nil)
 			break;
@@ -150,6 +156,10 @@ aanreader(void *arg)
 Restart:
 	b = mallocz(sizeof(Buf), 1);
 	for(;;){
+		if(mPaused != 0) {
+			sleep(1);
+			continue;
+		}
 		if(readn(c->netfd, &b->hdr, Hdrsz) != Hdrsz)
 			break;
 		a = GBIT32(b->hdr.acked);

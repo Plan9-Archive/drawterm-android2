@@ -37,6 +37,18 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("native-lib");
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        pauseDT();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        resumeDT();
+    }
+
     public void myFancyMethod(View v) {
         setContentView(R.layout.server_main);
         serverButtons();
@@ -200,4 +212,6 @@ public class MainActivity extends AppCompatActivity {
     public native void setMouse(int[] args);
     public native String getSnarf();
     public native void setSnarf(String str);
+    public native void pauseDT();
+    public native void resumeDT();
 }

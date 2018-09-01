@@ -15,6 +15,7 @@ unsigned char* screenData();
 float ws = 1;
 float hs = 1;
 extern char *snarfbuf;
+int mPaused = 0;
 
 JNIEXPORT void JNICALL
 Java_org_echoline_drawterm_MainActivity_setPass(
@@ -128,4 +129,18 @@ Java_org_echoline_drawterm_MainActivity_setSnarf(
     if (snarfbuf != NULL)
         free(snarfbuf);
     snarfbuf = strdup((*env)->GetStringUTFChars(env, str, 0));
+}
+
+JNIEXPORT void JNICALL
+Java_org_echoline_drawterm_MainActivity_pauseDT(
+        JNIEnv *env,
+        jobject obj) {
+    mPaused = 1;
+}
+
+JNIEXPORT void JNICALL
+Java_org_echoline_drawterm_MainActivity_resumeDT(
+        JNIEnv *env,
+        jobject obj) {
+    mPaused = 0;
 }

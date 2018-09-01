@@ -53,6 +53,7 @@ dt_main(int argc, char **argv)
 	if(bind("#U", "/root", MREPL) < 0)
 		panic("bind #U: %r");
 	bind("#A", "/dev", MAFTER);
+    bind("#N", "/dev", MAFTER);
 
 	if(open("/dev/cons", OREAD) != 0)
 		panic("open0: %r");
