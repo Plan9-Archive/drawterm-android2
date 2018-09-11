@@ -29,6 +29,46 @@ static ACameraCaptureSession **sessions = NULL;
 static ACaptureRequest **requests = NULL;
 static AImage **images = NULL;
 static CAux **datas = NULL;
+static ACameraManager *manager;
+static ACaptureSessionOutputContainer **container = NULL;
+static ACaptureSessionOutput **output = NULL;
+static ACameraOutputTarget **target = NULL;
+
+static void androidinit(void);
+
+static void
+reinitialize()
+{
+    int i;
+    for (i = 0; i < Ncameras; i++) {
+        ACaptureSessionOutputContainer_free(container[i]);
+        ACaptureSessionOutput_free(output[i]);
+        ACameraCaptureSession_close(sessions[i]);
+        ACameraOutputTarget_free(target[i]);
+        ACaptureRequest_free(requests[i]);
+        AImageReader_delete(readers[i]);
+        AImage_delete(images[i]);
+        if ((int)datas[i] > Ncameras) {
+            free(datas[i]->data);
+            free(datas[i]);
+        }
+        ACameraDevice_close(devices[i]);
+    }
+    ACameraManager_delete(manager);
+
+    free(devices);
+    free(readers);
+    free(windows);
+    free(sessions);
+    free(requests);
+    free(images);
+    free(datas);
+    free(container);
+    free(output);
+    free(target);
+
+    androidinit();
+}
 
 static void
 onDisconnected(void *context, ACameraDevice *device1)
@@ -38,6 +78,7 @@ onDisconnected(void *context, ACameraDevice *device1)
 static void
 onError(void *context, ACameraDevice *device1, int error)
 {
+    reinitialize();
 }
 
 static void
@@ -71,10 +112,6 @@ onImageAvailable(void *context, AImageReader *reader)
 static void
 androidinit(void)
 {
-    ACameraManager *manager;
-    ACaptureSessionOutputContainer *container;
-    ACaptureSessionOutput *output;
-    ACameraOutputTarget *target;
     ACameraDevice_StateCallbacks SCBs = {
             .context = NULL,
             .onDisconnected = onDisconnected,
@@ -95,6 +132,9 @@ androidinit(void)
     requests = malloc(sizeof(ACaptureRequest*) * Ncameras);
     images = malloc(sizeof(AImage*) * Ncameras);
     datas = malloc(sizeof(CAux*) * Ncameras);
+    container = malloc(sizeof(ACaptureSessionOutputContainer*) * Ncameras);
+    output = malloc(sizeof(ACaptureSessionOutput*) * Ncameras);
+    target = malloc(sizeof(ACameraOutputTarget*) * Ncameras);
     for (int i = 0; i < Ncameras; i++) {
         images[i] = NULL;
         AImageReader_ImageListener ALs = {
@@ -105,13 +145,13 @@ androidinit(void)
         media_status_t r = AImageReader_new(640, 480, AIMAGE_FORMAT_JPEG, 4, &readers[i]);
         AImageReader_setImageListener(readers[i], &ALs);
         AImageReader_getWindow(readers[i], &windows[i]);
-        ACaptureSessionOutput_create(windows[i], &output);
-        ACaptureSessionOutputContainer_create(&container);
-        ACaptureSessionOutputContainer_add(container, output);
-        ACameraDevice_createCaptureSession(devices[i], container, &CSSCBs, &sessions[i]);
-        ACameraOutputTarget_create(windows[i], &target);
+        ACaptureSessionOutput_create(windows[i], &output[i]);
+        ACaptureSessionOutputContainer_create(&container[i]);
+        ACaptureSessionOutputContainer_add(container[i], output[i]);
+        ACameraDevice_createCaptureSession(devices[i], container[i], &CSSCBs, &sessions[i]);
+        ACameraOutputTarget_create(windows[i], &target[i]);
         ACameraDevice_createCaptureRequest(devices[i], TEMPLATE_ZERO_SHUTTER_LAG, &requests[i]);
-        ACaptureRequest_addTarget(requests[i], target);
+        ACaptureRequest_addTarget(requests[i], target[i]);
     }
     ACameraManager_deleteCameraIdList(cameras);
 }
@@ -167,6 +207,13 @@ onCaptureCompleted(void *context, ACameraCaptureSession *session,
 {
 }
 
+static void
+onCaptureFailed(void *context, ACameraCaptureSession *session,
+                ACaptureRequest *request, ACameraCaptureFailure *failure)
+{
+    reinitialize();
+}
+
 static Chan*
 androidopen(Chan *c, int omode)
 {
@@ -178,6 +225,7 @@ androidopen(Chan *c, int omode)
     ACameraCaptureSession_captureCallbacks CBs = {
             .context = (void*)c,
             .onCaptureCompleted = onCaptureCompleted,
+            .onCaptureFailed = onCaptureFailed,
     };
 
     if (c->qid.path & Qcam) {
