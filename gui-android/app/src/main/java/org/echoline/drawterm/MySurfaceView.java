@@ -87,7 +87,7 @@ public class MySurfaceView extends SurfaceView {
             @Override
             public void run() {
                 while (true) {
-                    if ((SystemClock.currentThreadTimeMillis() - last) > 15) {
+                    if ((SystemClock.currentThreadTimeMillis() - last) > 250) {
                         mainActivity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -115,6 +115,11 @@ public class MySurfaceView extends SurfaceView {
                             }
                         }).start();
                         lastcb = SystemClock.currentThreadTimeMillis();
+                    }
+                    try {
+                        // TODO EBC seconds and millis?
+                        Thread.sleep(0, 5000);
+                    } catch(Exception e) {
                     }
                 }
             }

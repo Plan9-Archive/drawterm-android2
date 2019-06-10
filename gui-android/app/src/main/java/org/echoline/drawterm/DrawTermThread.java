@@ -1,7 +1,5 @@
 package org.echoline.drawterm;
 
-import android.support.design.widget.Snackbar;
-
 /**
  * Created by eli on 12/4/17.
  */
